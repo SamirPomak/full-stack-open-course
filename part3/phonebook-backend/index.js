@@ -1,4 +1,6 @@
 const express = require('express');
+const morgan = require('morgan');
+
 const app = express();
 
 let persons = [
@@ -25,6 +27,26 @@ let persons = [
 ];
 
 app.use(express.json());
+app.use(
+  morgan(function (tokens, req, res) {
+    const method = tokens.method(req, res);
+    const log = [
+      method,
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, 'content-length'),
+      '-',
+      tokens['response-time'](req, res),
+      'ms',
+    ];
+
+    if (method === 'POST') {
+      log.push(JSON.stringify(req.body));
+    }
+
+    return log.join(' ');
+  })
+);
 
 const generateId = () => {
   return Math.random().toString(12).slice(2);
