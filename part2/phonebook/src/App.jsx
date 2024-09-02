@@ -46,6 +46,14 @@ const App = () => {
               message: `Updated ${updatedContect.name}`,
               severity: 'success',
             });
+          })
+          .catch((error) => {
+            setNotificationConfig({
+              message: error.response?.data.error,
+              severity: 'error',
+            });
+          })
+          .finally(() => {
             setTimeout(() => {
               setNotificationConfig({ message: null });
             }, 3000);
@@ -59,19 +67,29 @@ const App = () => {
       number: newNumber,
     };
 
-    personService.create(personObject).then((newPerson) => {
-      setPersons(persons.concat(newPerson));
-      setNewName('');
-      setNewNumber('');
+    personService
+      .create(personObject)
+      .then((newPerson) => {
+        setPersons(persons.concat(newPerson));
+        setNewName('');
+        setNewNumber('');
 
-      setNotificationConfig({
-        message: `Added ${newPerson.name}`,
-        severity: 'success',
+        setNotificationConfig({
+          message: `Added ${newPerson.name}`,
+          severity: 'success',
+        });
+      })
+      .catch((error) => {
+        setNotificationConfig({
+          message: error.response?.data.error,
+          severity: 'error',
+        });
+      })
+      .finally(() => {
+        setTimeout(() => {
+          setNotificationConfig({ message: null });
+        }, 3000);
       });
-      setTimeout(() => {
-        setNotificationConfig({ message: null });
-      }, 3000);
-    });
   };
 
   const handleDelete = (person) => {
