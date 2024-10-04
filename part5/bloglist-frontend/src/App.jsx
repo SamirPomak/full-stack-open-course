@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Blog from './components/Blog';
 import blogService from './services/blogs';
 import loginService from './services/login';
@@ -6,6 +6,7 @@ import LoginForm from './components/LoginForm';
 import Notification from './components/Notification';
 import './App.css';
 import BlogForm from './components/BlogForm';
+import Togglable from './components/Togglable';
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
@@ -13,10 +14,16 @@ const App = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
+  const loginFormRef = useRef();
+  const blogFormRef = useRef();
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs));
-    setUser(loginService.getCurrentLoggedInUser());
+    const user = loginService.getCurrentLoggedInUser();
+    if (user) {
+      setUser(user);
+      blogService.setToken(user.token);
+    }
   }, []);
 
   const handleLogin = async (event) => {
@@ -42,7 +49,13 @@ const App = () => {
         message: 'wrong username or password',
         severity: 'error',
       });
+    } finally {
+      loginFormRef.current.toggleVisibility();
     }
+  };
+
+  const hideBlogForm = () => {
+    blogFormRef.current.toggleVisibility();
   };
 
   const handleLogout = () => {
@@ -61,31 +74,71 @@ const App = () => {
     }, 5000);
   };
 
+  const handleLike = async (blog) => {
+    const updatedBlog = {
+      ...blog,
+      likes: blog.likes + 1,
+      user: blog.user.id,
+    };
+
+    await blogService.update(updatedBlog);
+    const updatedBlogs = await blogService.getAll();
+    setBlogs(updatedBlogs);
+  };
+
+  const handleDelete = async (blog) => {
+    if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
+      await blogService.deleteBlog(blog.id);
+      const updatedBlogs = await blogService.getAll();
+      setBlogs(updatedBlogs);
+      raiseNotification({
+        message: `Removed blog ${blog.title} by ${blog.author}`,
+        severity: 'success',
+      });
+    }
+  };
+
   return (
     <div>
-      <h2>{user ? 'blogs' : 'log in to application'}</h2>
+      <h2>Blogs</h2>
       <Notification config={notificationConfig} />
+      {!user && (
+        <Togglable buttonLabel="login" ref={loginFormRef}>
+          <LoginForm
+            handleLogin={handleLogin}
+            username={username}
+            password={password}
+            setPassword={setPassword}
+            setUsername={setUsername}
+          />
+        </Togglable>
+      )}
       {user && (
         <div>
           <p>
             {user.username} logged in{' '}
             <button onClick={handleLogout}>logout</button>
           </p>
-          <BlogForm raiseNotification={raiseNotification} setBlogs={setBlogs} />
-          {blogs.map((blog) => (
-            <Blog key={blog.id} blog={blog} />
-          ))}
+          <Togglable buttonLabel="create new blog" ref={blogFormRef}>
+            <BlogForm
+              raiseNotification={raiseNotification}
+              setBlogs={setBlogs}
+              hideBlogForm={hideBlogForm}
+            />
+          </Togglable>
         </div>
       )}
-      {!user && (
-        <LoginForm
-          handleLogin={handleLogin}
-          username={username}
-          password={password}
-          setPassword={setPassword}
-          setUsername={setUsername}
-        />
-      )}
+      {blogs
+        .sort((a, b) => b.likes - a.likes)
+        .map((blog) => (
+          <Blog
+            key={blog.id}
+            blog={blog}
+            handleLike={handleLike}
+            handleDelete={handleDelete}
+            user={user}
+          />
+        ))}
     </div>
   );
 };
