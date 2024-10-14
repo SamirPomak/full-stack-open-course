@@ -1,46 +1,26 @@
 import { useState } from 'react';
-import blogService from '../services/blogs';
 
-const BlogForm = ({ raiseNotification, setBlogs, hideBlogForm }) => {
+const BlogForm = ({ handleCreateNewBlog }) => {
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [url, setUrl] = useState('');
 
-  const handleCreateNewBlog = (event) => {
+  const handleBlogSubmit = (event) => {
     event.preventDefault();
-    blogService
-      .create({ title, author, url })
-      .then(() => {
-        blogService.getAll().then((blogs) => setBlogs(blogs));
-        raiseNotification({
-          message: `A new blog ${title} by ${author} added!`,
-          severity: 'success',
-        });
-      })
-      .catch((e) => {
-        raiseNotification({
-          message: `Could not add blog because of ${e?.message}`,
-          severity: 'error',
-        });
-      })
-      .finally(() => {
-        setAuthor('');
-        setTitle('');
-        setUrl('');
-        hideBlogForm();
-      });
+    handleCreateNewBlog({ title, author, url });
   };
 
   return (
     <div>
       <h2>create new</h2>
-      <form onSubmit={handleCreateNewBlog}>
+      <form onSubmit={handleBlogSubmit}>
         <div>
           title:
           <input
             type="text"
             value={title}
             name="title"
+            placeholder="enter title"
             onChange={({ target }) => setTitle(target.value)}
           />
         </div>
@@ -50,6 +30,7 @@ const BlogForm = ({ raiseNotification, setBlogs, hideBlogForm }) => {
             type="text"
             value={author}
             name="author"
+            placeholder="enter author"
             onChange={({ target }) => setAuthor(target.value)}
           />
         </div>
@@ -59,6 +40,7 @@ const BlogForm = ({ raiseNotification, setBlogs, hideBlogForm }) => {
             type="text"
             value={url}
             name="url"
+            placeholder="enter url"
             onChange={({ target }) => setUrl(target.value)}
           />
         </div>

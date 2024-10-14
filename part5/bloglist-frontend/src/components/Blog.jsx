@@ -14,14 +14,16 @@ const Blog = ({ blog, handleLike, user, handleDelete }) => {
 
   return (
     <div style={blogStyle}>
-      {blog.title} {blog.author}{' '}
+      <p>
+        {blog.title} {blog.author}
+      </p>
       <button onClick={() => setIsDetailsVisible(!isDetailsVisible)}>
         {isDetailsVisible ? 'hide' : 'view'}
       </button>
       {isDetailsVisible && (
         <>
-          <p>{blog.url}</p>
-          <p>
+          <p data-testid="url">{blog.url}</p>
+          <p data-testid="likes">
             {blog.likes} <button onClick={() => handleLike(blog)}>like</button>
           </p>
           <p>{blog.user.username}</p>

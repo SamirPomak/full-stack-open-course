@@ -54,8 +54,25 @@ const App = () => {
     }
   };
 
-  const hideBlogForm = () => {
-    blogFormRef.current.toggleVisibility();
+  const handleCreateNewBlog = ({ title, author, url }) => {
+    blogService
+      .create({ title, author, url })
+      .then(() => {
+        blogService.getAll().then((blogs) => setBlogs(blogs));
+        raiseNotification({
+          message: `A new blog ${title} by ${author} added!`,
+          severity: 'success',
+        });
+      })
+      .catch((e) => {
+        raiseNotification({
+          message: `Could not add blog because of ${e?.message}`,
+          severity: 'error',
+        });
+      })
+      .finally(() => {
+        blogFormRef.current.toggleVisibility();
+      });
   };
 
   const handleLogout = () => {
@@ -120,11 +137,7 @@ const App = () => {
             <button onClick={handleLogout}>logout</button>
           </p>
           <Togglable buttonLabel="create new blog" ref={blogFormRef}>
-            <BlogForm
-              raiseNotification={raiseNotification}
-              setBlogs={setBlogs}
-              hideBlogForm={hideBlogForm}
-            />
+            <BlogForm handleCreateNewBlog={handleCreateNewBlog} />
           </Togglable>
         </div>
       )}
