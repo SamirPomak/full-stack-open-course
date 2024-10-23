@@ -19,7 +19,7 @@ const asObject = (anecdote) => {
 
 const initialState = anecdotesAtStart.map(asObject);
 
-const reducer = (state = initialState, action) => {
+const anecdotesReducer = (state = initialState, action) => {
   console.log('state now: ', state);
   console.log('action', action);
   switch (action.type) {
@@ -50,4 +50,4 @@ export const newAnecdoteAction = (anecdote) => ({
   },
 });
 
-export default reducer;
+export default anecdotesReducer;
