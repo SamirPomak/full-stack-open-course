@@ -2,8 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import AnecdoteForm from './components/AnecdoteForm';
 import Notification from './components/Notification';
 import { getAnecdotes, updateAnecdote } from './services/requests';
+import { useNotificationDispatch } from './contexts/hooks';
 
 const App = () => {
+  const dispatch = useNotificationDispatch();
   const {
     isPending,
     isError,
@@ -29,6 +31,13 @@ const App = () => {
           return anecdote;
         })
       );
+      dispatch({
+        type: 'SET_NOTIFICATION',
+        payload: `Anecdote '${upvotedAnecdote.content}' voted!`,
+      });
+      setTimeout(() => {
+        dispatch({ type: 'CLEAR_NOTIFICATION' });
+      }, 5000);
     },
   });
 
