@@ -1,5 +1,5 @@
 const Notification = ({ config }) => {
-  if (config === null) {
+  if (!config.message) {
     return null;
   }
 

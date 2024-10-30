@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import PropTypes from 'prop-types';
+import UserContext from '../contexts/UserContext';
 
 const blogStyle = {
   paddingTop: 10,
@@ -9,7 +10,8 @@ const blogStyle = {
   marginBottom: 5,
 };
 
-const Blog = ({ blog, handleLike, user, handleDelete }) => {
+const Blog = ({ blog, handleLike, handleDelete }) => {
+  const [user] = useContext(UserContext);
   const [isDetailsVisible, setIsDetailsVisible] = useState(false);
 
   return (
@@ -38,7 +40,6 @@ const Blog = ({ blog, handleLike, user, handleDelete }) => {
 
 Blog.propTypes = {
   blog: PropTypes.object.isRequired,
-  user: PropTypes.object.isRequired,
   handleLike: PropTypes.func.isRequired,
   handleDelete: PropTypes.func.isRequired,
 };
