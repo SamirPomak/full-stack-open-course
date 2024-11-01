@@ -23,8 +23,17 @@ export const NotificationContextProvider = (props) => {
     severity: '',
   });
 
+  const raiseNotification = (config) => {
+    notificationDispatch({ type: 'SET_NOTIFICATION', payload: config });
+    setTimeout(() => {
+      notificationDispatch({ type: 'CLEAR_NOTIFICATION', payload: config });
+    }, 5000);
+  };
+
   return (
-    <NotificationContext.Provider value={[notification, notificationDispatch]}>
+    <NotificationContext.Provider
+      value={[notification, notificationDispatch, raiseNotification]}
+    >
       {props.children}
     </NotificationContext.Provider>
   );

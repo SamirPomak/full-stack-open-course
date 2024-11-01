@@ -10,20 +10,20 @@ import Togglable from './components/Togglable';
 import NotificationContext from './contexts/NotificationContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import UserContext from './contexts/UserContext';
+import { Link, Navigate, Route, Routes } from 'react-router-dom';
+import BlogsView from './components/BlogsView';
+import UsersView from './components/UsersView';
+import UserView from './components/User';
 
 const App = () => {
-  const [notification, notificationDispatch] = useContext(NotificationContext);
+  const [notification, notificationDispatch, raiseNotification] =
+    useContext(NotificationContext);
   const [user, userDispatch] = useContext(UserContext);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const loginFormRef = useRef();
   const blogFormRef = useRef();
-  const { isPending, data: blogs } = useQuery({
-    queryKey: ['blogs'],
-    queryFn: blogService.getAll,
-    retry: 1,
-    refetchOnWindowFocus: false,
-  });
+
   const queryClient = useQueryClient();
   const createBlogMutation = useMutation({
     mutationFn: blogService.create,
@@ -44,54 +44,7 @@ const App = () => {
       blogFormRef.current.toggleVisibility();
     },
   });
-  const updateBlogMutation = useMutation({
-    mutationFn: blogService.update,
-    onSuccess: (upvotedBlog) => {
-      const blogs = queryClient.getQueryData(['blogs']);
-      queryClient.setQueryData(
-        ['blogs'],
-        blogs.map((blog) => {
-          if (blog.id === upvotedBlog.id) {
-            return upvotedBlog;
-          }
 
-          return blog;
-        })
-      );
-      raiseNotification({
-        message: `A like added to ${upvotedBlog.title}!`,
-        severity: 'success',
-      });
-    },
-    onError: (e) => {
-      raiseNotification({
-        message: `Could not update blog because of ${e?.message}`,
-        severity: 'error',
-      });
-    },
-  });
-  const deleteBlogMutation = useMutation({
-    mutationFn: blogService.deleteBlog,
-    onSuccess: (_, id) => {
-      const blogs = queryClient.getQueryData(['blogs']);
-      const deletedBlog = blogs.find((b) => b.id === id);
-
-      queryClient.setQueryData(
-        ['blogs'],
-        blogs.filter((blog) => blog.id !== id)
-      );
-      raiseNotification({
-        message: `Removed blog ${deletedBlog.title} by ${deletedBlog.author}`,
-        severity: 'success',
-      });
-    },
-    onError: (e) => {
-      raiseNotification({
-        message: `Could not delete blog because of ${e?.message}`,
-        severity: 'error',
-      });
-    },
-  });
   useEffect(() => {
     const user = loginService.getCurrentLoggedInUser();
     if (user) {
@@ -141,28 +94,6 @@ const App = () => {
     });
   };
 
-  const raiseNotification = (config) => {
-    notificationDispatch({ type: 'SET_NOTIFICATION', payload: config });
-    setTimeout(() => {
-      notificationDispatch({ type: 'CLEAR_NOTIFICATION', payload: config });
-    }, 5000);
-  };
-
-  const handleLike = async (blog) => {
-    const updatedBlog = {
-      ...blog,
-      likes: blog.likes + 1,
-      user: blog.user.id,
-    };
-    updateBlogMutation.mutate(updatedBlog);
-  };
-
-  const handleDelete = async (blog) => {
-    if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
-      deleteBlogMutation.mutate(blog.id);
-    }
-  };
-
   return (
     <div>
       <h2>Blogs</h2>
@@ -180,29 +111,32 @@ const App = () => {
       )}
       {user && (
         <div>
-          <p>
+          <nav
+            style={{
+              background: 'lightgray',
+              display: 'flex',
+              gap: '15px',
+              margin: '10px 10px 10px 0px',
+              padding: '10px',
+            }}
+          >
+            <Link to="/blogs">blogs</Link>
+            <Link to="/users">users</Link>
             {user.username} logged in{' '}
             <button onClick={handleLogout}>logout</button>
-          </p>
+          </nav>
           <Togglable buttonLabel="create new blog" ref={blogFormRef}>
             <BlogForm handleCreateNewBlog={handleCreateNewBlog} />
           </Togglable>
         </div>
       )}
-      {isPending ? (
-        <div>Loading blogs...!</div>
-      ) : (
-        blogs
-          .sort((a, b) => b.likes - a.likes)
-          .map((blog) => (
-            <Blog
-              key={blog.id}
-              blog={blog}
-              handleLike={handleLike}
-              handleDelete={handleDelete}
-            />
-          ))
-      )}
+      <Routes>
+        <Route path="/" element={<Navigate replace to="/blogs" />} />
+        <Route path="/blogs" element={<BlogsView />} />
+        <Route path="/blogs/:id" element={<Blog />} />
+        <Route path="/users" element={<UsersView />} />
+        <Route path="/users/:id" element={<UserView />} />
+      </Routes>
     </div>
   );
 };
