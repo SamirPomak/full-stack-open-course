@@ -8,7 +8,7 @@ const Author = require('./models/author');
 const Book = require('./models/book');
 const User = require('./models/user');
 require('dotenv').config();
-
+jwt = require('jsonwebtoken');
 const MONGODB_URI = process.env.MONGODB_URI;
 
 console.log('connecting to', MONGODB_URI);
@@ -168,26 +168,28 @@ const resolvers = {
     authorCount: () => Author.collection.countDocuments(),
     allBooks: async (root, args) => {
       if (args.author) {
-        return Book.findOne({ author: args.author });
+        return Book.findOne({ author: args.author }).clone();
       }
 
       if (args.genre) {
-        return Book.findOne({ genres: args.genre });
+        return Book.findOne({ genres: args.genre }).clone();
       }
 
-      return Book.find({});
+      return await Book.find({}).clone().populate('author');
     },
-    allAuthors: () => Author.find({}),
+    allAuthors: async () => {
+      return await Author.find({}).clone();
+    },
     me: (root, args, context) => {
       return context.currentUser;
     },
   },
   Book: {
-    author: (root) => Author.findOne({ name: root.author }),
+    // author: (root) => Author.findOne({ name: root.author }).clone(),
   },
   Author: {
     bookCount: async (root) => {
-      const filteredBooks = await Book.find({ author: root.name });
+      const filteredBooks = await Book.find({ author: root.name }).clone();
       return filteredBooks.length;
     },
   },
@@ -204,13 +206,6 @@ const resolvers = {
         });
       }
 
-      let author = await Author.findOne({ name: args.author });
-
-      if (!author) {
-        author = new Author({ name: args.author });
-        await author.save();
-      }
-
       try {
         await book.save();
       } catch (error) {
@@ -221,6 +216,12 @@ const resolvers = {
             error,
           },
         });
+      }
+      let author = await Author.findOne({ name: args.author }).clone();
+
+      if (!author) {
+        author = new Author({ name: args.author });
+        await author.save();
       }
 
       return book;
@@ -236,7 +237,7 @@ const resolvers = {
         });
       }
 
-      const author = await Author.findOne({ name: args.name });
+      const author = await Author.findOne({ name: args.name }).clone();
 
       if (!author) {
         throw new GraphQLError('Author not found', {
