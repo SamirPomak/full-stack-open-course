@@ -1,0 +1,31 @@
+{
+  "name": "bmi",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "calculateBmi": "ts-node bmiCalculator.ts",
+    "calculateExercises": "ts-node exerciseCalculator.ts",
+    "start": "ts-node index.ts",
+    "dev": "ts-node-dev index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "@stylistic/eslint-plugin": "^5.3.1",
+    "@types/eslint__js": "^8.42.3",
+    "@types/express": "^5.0.3",
+    "eslint": "^9.35.0",
+    "globals": "^16.3.0",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.43.0"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
